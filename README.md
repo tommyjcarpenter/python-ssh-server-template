@@ -9,12 +9,11 @@ template for a command based async SSH server
 3) Make an `authorized_keys` directory somewhere
 4) Add the client public keys into the file `../path_to_authorized_keys/CLIENT_USERNAME`
 5) set the ENV variable `SERVER_AUTHORIZED_KEYS_DIR`
-5) Start the server
 
-```
-cd server
-python echo_server.py
-```
+Then, start the server
+1) create venv
+2) `pip install .`
+3) `start` (this magical command is installed into your venv when the package is installed
 
 SSH into it (from another terminal window, assuming `ssh_client_key.pub` is in the file  `SERVER_AUTHORIZED_KEYS_DIR/myclient`:
 

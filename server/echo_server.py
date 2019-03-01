@@ -28,7 +28,6 @@
 # files in it named based on the username containing the client keys
 # and certificate authority keys which are accepted for that user.
 
-import asyncio
 import asyncssh
 import sys
 import os
@@ -63,8 +62,10 @@ async def handle_client(process):
 
     while True:
         try:
+            # investigate whether readuntil has a timeout, or whether a continously sending client here will block the server.
             x = await process.stdin.readuntil(COMMAND_TERMINATOR)
             print(x)
+            process.stdout.write("Hey! I received: {0}".format(x))
 
             # make sure any long work done here with x is async!!
 
@@ -91,14 +92,3 @@ async def start_server():
     await asyncssh.create_server(MySSHServer, '', 8022,
                                  server_host_keys=['{0}/server_host_key'.format(HOST_KEY_LOC)],
                                  process_factory=handle_client)
-
-
-loop = asyncio.get_event_loop()
-
-
-try:
-    loop.run_until_complete(start_server())
-except (OSError, asyncssh.Error) as exc:
-    sys.exit('Error starting server: ' + str(exc))
-
-loop.run_forever()
