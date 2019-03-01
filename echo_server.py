@@ -31,19 +31,42 @@
 import asyncio, asyncssh, sys
 
 
+COMMAND_TERMINATOR = ";"
+
+
+# NOTE: if you want a line by line processor (equiv to user pressing enter), rather then a terminator seperator,
+# then uncomment out this.
+# async def handle_client(process):
+#     process.stdout.write('Enter statements, or EOF when done:\n')
+#
+#     total = 0
+#
+#     try:
+#         async for line in process.stdin:
+#             line = line.rstrip('\n')
+#             process.stdout.write('Line was = %s\n' % line)
+#             if line == "ERROR":
+#                 process.stderr.write('stderr test\n')
+#     except asyncssh.BreakReceived:
+#         process.exit(0)
+
+
 async def handle_client(process):
     process.stdout.write('Enter statements, or EOF when done:\n')
 
     total = 0
 
-    try:
-        async for line in process.stdin:
-            line = line.rstrip('\n')
-            process.stdout.write('Line was = %s\n' % line)
-            if line == "ERROR":
+    while True:
+        try:
+            x = await process.stdin.readuntil(COMMAND_TERMINATOR)
+            print(x)
+
+            # make sure any long work done here with x is async!!
+
+            if x == "ERROR;":
                 process.stderr.write('stderr test\n')
-    except asyncssh.BreakReceived:
-        process.exit(0)
+        except asyncssh.BreakReceived:
+            process.exit(0)
 
 
 class MySSHServer(asyncssh.SSHServer):
@@ -64,7 +87,9 @@ async def start_server():
                                  server_host_keys=['ssh_host_key'],
                                  process_factory=handle_client)
 
+
 loop = asyncio.get_event_loop()
+
 
 try:
     loop.run_until_complete(start_server())
