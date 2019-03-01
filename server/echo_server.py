@@ -28,10 +28,15 @@
 # files in it named based on the username containing the client keys
 # and certificate authority keys which are accepted for that user.
 
-import asyncio, asyncssh, sys
+import asyncio
+import asyncssh
+import sys
+import os
 
 
 COMMAND_TERMINATOR = ";"
+AUTHORIZED_KEY_LOC = os.environ["SERVER_AUTHORIZED_KEYS_DIR"]
+HOST_KEY_LOC = os.environ["SERVER_HOST_KEY_LOC"]
 
 
 # NOTE: if you want a line by line processor (equiv to user pressing enter), rather then a terminator seperator,
@@ -75,7 +80,7 @@ class MySSHServer(asyncssh.SSHServer):
 
     def begin_auth(self, username):
         try:
-            self._conn.set_authorized_keys('authorized_keys/%s' % username)
+            self._conn.set_authorized_keys('{0}/{1}'.format(AUTHORIZED_KEY_LOC, username))
         except IOError:
             pass
 
@@ -84,7 +89,7 @@ class MySSHServer(asyncssh.SSHServer):
 
 async def start_server():
     await asyncssh.create_server(MySSHServer, '', 8022,
-                                 server_host_keys=['ssh_host_key'],
+                                 server_host_keys=['{0}/server_host_key'.format(HOST_KEY_LOC)],
                                  process_factory=handle_client)
 
 
